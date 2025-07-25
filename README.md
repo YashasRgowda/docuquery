@@ -20,12 +20,6 @@ DocuQuery AI is a sophisticated full-stack application that enables users to upl
 - 📱 **Responsive Design** - Works seamlessly on desktop, tablet, and mobile
 - 🛡️ **Secure & Private** - Documents processed locally, no permanent storage
 
-## 🎯 Demo
-
-https://github.com/yourusername/docuquery-ai/assets/yourusername/demo-video.mp4
-
-*Upload a PDF, ask questions, and get intelligent answers with source citations*
-
 ## 🚀 Quick Start
 
 ### Prerequisites
