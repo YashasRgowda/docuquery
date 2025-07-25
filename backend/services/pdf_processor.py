@@ -30,51 +30,25 @@ class PDFProcessor:
         self.overlap = overlap
         logger.info(f"PDFProcessor initialized with chunk_size={chunk_size}, overlap={overlap}")
     
+    # Replace the extract_text method
     def extract_text(self, pdf_path: str) -> str:
-        """
-        Extract raw text from PDF file
-        
-        Args:
-            pdf_path: Path to the PDF file
-            
-        Returns:
-            Extracted text as string
-        """
+        """Extract text using pdfplumber (more deployment-friendly)"""
         try:
             logger.info(f"Extracting text from: {pdf_path}")
-            
-            # Check if file exists
-            if not os.path.exists(pdf_path):
-                raise Exception(f"PDF file not found: {pdf_path}")
-            
-            # Open PDF document
-            doc = fitz.open(pdf_path)
             text = ""
-            page_count = len(doc)
             
-            logger.info(f"PDF has {page_count} pages")
+            with pdfplumber.open(pdf_path) as pdf:
+                for page_num, page in enumerate(pdf.pages):
+                    page_text = page.extract_text()
+                    if page_text:
+                        text += f"\n--- Page {page_num + 1} ---\n"
+                        text += page_text
+                        text += "\n"
             
-            # Extract text from each page
-            for page_num in range(page_count):
-                try:
-                    page = doc[page_num]
-                    page_text = page.get_text()
-                    
-                    # Add page separator for context
-                    text += f"\n--- Page {page_num + 1} ---\n"
-                    text += page_text
-                    text += "\n"
-                    
-                except Exception as page_error:
-                    logger.warning(f"Error extracting from page {page_num + 1}: {str(page_error)}")
-                    continue
-            
-            doc.close()
-            
-            logger.info(f"Successfully extracted {len(text)} characters from {page_count} pages")
+            logger.info(f"Successfully extracted {len(text)} characters")
             
             if len(text.strip()) < 10:
-                raise Exception("PDF appears to be empty or contains only images. No extractable text found.")
+                raise Exception("PDF appears to be empty or contains only images.")
             
             return text
             
