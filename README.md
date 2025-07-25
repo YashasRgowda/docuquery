@@ -263,18 +263,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **FastAPI** for the fantastic web framework
 - **Next.js** for the powerful React framework
 
-## 📞 Contact
-
-**Your Name** - [@yourtwitter](https://twitter.com/yourtwitter) - your.email@example.com
-
-Project Link: [https://github.com/yourusername/docuquery-ai](https://github.com/yourusername/docuquery-ai)
 
 ---
-
-<div align="center">
-
-**⭐ Star this repository if you found it helpful!**
-
-[Report Bug](https://github.com/yourusername/docuquery-ai/issues) · [Request Feature](https://github.com/yourusername/docuquery-ai/issues) · [Documentation](https://github.com/yourusername/docuquery-ai/wiki)
-
-</div>
