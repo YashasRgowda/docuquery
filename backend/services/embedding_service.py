@@ -78,10 +78,10 @@ class EmbeddingService:
             logger.error(f"Error creating embeddings: {str(e)}")
             raise Exception(f"Failed to create embeddings: {str(e)}")
     
-    def build_vector_index(self, chunks: List[str]) -> None:
+    def build_vector_index(self, chunks: List[str]) -> None:  
         """
         Build FAISS vector index from text chunks
-        
+        here we are building the search index basically a library for super fast search
         Args:
             chunks: List of text chunks to index
         """
@@ -334,7 +334,7 @@ if __name__ == "__main__":
             if os.path.exists(file_path):
                 os.remove(file_path)
         
-        print("Test completed successfully!")
+        prin("Test completed successfully!")
         
     except Exception as e:
         print(f"Test failed: {e}")
