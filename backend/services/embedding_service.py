@@ -334,7 +334,7 @@ if __name__ == "__main__":
             if os.path.exists(file_path):
                 os.remove(file_path)
         
-        prin("Test completed successfully!")
+        print("Test completed successfully!")
         
     except Exception as e:
         print(f"Test failed: {e}")

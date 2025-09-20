@@ -82,7 +82,7 @@ class CollectionSummaryResponse(BaseModel):
 # ============================================================================
 
 app = FastAPI(
-    title="DocuQuery Enhanced API",
+    title="DocuQuery Enhanced APII",
     description="AI-Powered Document Q&A System with Gemini Integration",
     version="2.0.0"
 )
