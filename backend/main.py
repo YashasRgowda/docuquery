@@ -56,12 +56,33 @@ class HealthResponse(BaseModel):
     version: str
     llm_status: Optional[Dict] = None
 
+class MultiDocQueryRequest(BaseModel):
+    query: str
+    file_ids: Optional[List[str]] = None  # None means search all documents
+    k_total: int = 8  # Total chunks to use from all documents
+
+class MultiDocQueryResponse(BaseModel):
+    query: str
+    answer: str
+    sources: List[Dict]
+    documents_searched: int
+    document_names: List[str]
+    processing_time: float
+    llm_used: bool
+    llm_provider: Optional[str] = None
+    llm_model: Optional[str] = None
+
+class CollectionSummaryResponse(BaseModel):
+    total_documents: int
+    total_chunks: int
+    documents: List[Dict]
+
 # ============================================================================
 # FASTAPI APP INITIALIZATION
 # ============================================================================
 
 app = FastAPI(
-    title="DocuQuery Enhanced API",
+    title="DocuQuery Enhanced APII",
     description="AI-Powered Document Q&A System with Gemini Integration",
     version="2.0.0"
 )
@@ -82,9 +103,12 @@ app.add_middleware(
 # Initialize services
 pdf_processor = PDFProcessor()
 embedding_service = EmbeddingService()
-
 # Initialize LLM service with Gemini 1.5 Flash
 llm_service = LLMService()
+
+# Initialize multi-document service
+from services.multi_doc_service import MultiDocumentService
+multi_doc_service = MultiDocumentService(embedding_service, llm_service)
 
 # In-memory storage for MVP (in production, use database)
 processed_documents = {}  # file_id -> document metadata
@@ -429,6 +453,130 @@ async def delete_document(file_id: str):
         raise HTTPException(
             status_code=500,
             detail=f"Failed to delete document: {str(e)}"
+        )
+
+# ============================================================================
+# MULTI-DOCUMENT ENDPOINTS
+# ============================================================================
+
+@app.post("/query-multi", response_model=MultiDocQueryResponse)
+async def query_multiple_documents(request: MultiDocQueryRequest):
+    """
+    Query across multiple documents for cross-document analysis
+    """
+    if not multi_doc_service.document_indices:
+        raise HTTPException(
+            status_code=400,
+            detail="No documents available for multi-document search. Please upload and process documents first."
+        )
+    
+    # Validate file_ids if provided
+    if request.file_ids:
+        invalid_ids = [fid for fid in request.file_ids if fid not in processed_documents]
+        if invalid_ids:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Documents not found: {invalid_ids}"
+            )
+    
+    try:
+        result = multi_doc_service.generate_cross_document_answer(
+            query=request.query,
+            file_ids=request.file_ids,
+            k_total=request.k_total
+        )
+        
+        return MultiDocQueryResponse(**result)
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Multi-document query failed: {str(e)}"
+        )
+
+@app.get("/collection-summary", response_model=CollectionSummaryResponse)
+async def get_collection_summary():
+    """Get summary of all documents in the multi-document collection"""
+    summary = multi_doc_service.get_collection_summary()
+    return CollectionSummaryResponse(**summary)
+
+@app.post("/add-to-collection/{file_id}")
+async def add_document_to_collection(file_id: str):
+    """Add a processed document to the multi-document collection"""
+    if file_id not in processed_documents:
+        raise HTTPException(
+            status_code=404,
+            detail="Document not found"
+        )
+    
+    doc_info = processed_documents[file_id]
+    
+    if doc_info["status"] != "processed":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Document must be processed first. Current status: {doc_info['status']}"
+        )
+    
+    try:
+        # Load the document's chunks
+        index_path = doc_info["index_path"]
+        
+        # Load existing embedding service to get chunks
+        temp_embedding_service = EmbeddingService()
+        success = temp_embedding_service.load_index(index_path)
+        
+        if not success:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to load document index"
+            )
+        
+        # Add to multi-document collection
+        multi_doc_service.add_document(
+            file_id=file_id,
+            chunks=temp_embedding_service.chunks,
+            metadata=doc_info
+        )
+        
+        return {
+            "message": f"Document '{doc_info['original_filename']}' added to multi-document collection",
+            "file_id": file_id,
+            "collection_size": len(multi_doc_service.document_indices)
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to add document to collection: {str(e)}"
+        )
+
+@app.delete("/collection/{file_id}")
+async def remove_from_collection(file_id: str):
+    """Remove a document from the multi-document collection"""
+    if file_id not in multi_doc_service.document_indices:
+        raise HTTPException(
+            status_code=404,
+            detail="Document not found in collection"
+        )
+    
+    try:
+        success = multi_doc_service.remove_document(file_id)
+        
+        if success:
+            return {
+                "message": f"Document {file_id} removed from collection",
+                "collection_size": len(multi_doc_service.document_indices)
+            }
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to remove document from collection"
+            )
+            
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to remove document: {str(e)}"
         )
 
 # ============================================================================

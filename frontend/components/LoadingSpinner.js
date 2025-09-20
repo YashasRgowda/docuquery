@@ -16,6 +16,27 @@ export function SimpleSpinner({ size = 24, className = "" }) {
 }
 
 /**
+ * General LoadingSpinner component (alias for SimpleSpinner)
+ */
+export function LoadingSpinner({ size = "md", className = "" }) {
+  const sizeMap = {
+    sm: 16,
+    md: 24,
+    lg: 32,
+    xl: 48
+  };
+  
+  return (
+    <div className="flex items-center justify-center">
+      <Loader2 
+        className={`animate-spin text-blue-600 ${className}`} 
+        size={sizeMap[size] || 24} 
+      />
+    </div>
+  );
+}
+
+/**
  * File upload progress loader
  */
 export function UploadProgress({ progress = 0, fileName = "" }) {
@@ -154,9 +175,11 @@ export function LoadingButton({
   onClick,
   disabled = false,
   className = "",
-  variant = "primary" 
+  variant = "primary",
+  size = "md",
+  type = "button"
 }) {
-  const baseClasses = "flex items-center justify-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
+  const baseClasses = "flex items-center justify-center space-x-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
   
   const variants = {
     primary: "bg-blue-600 text-white hover:bg-blue-700",
@@ -164,11 +187,18 @@ export function LoadingButton({
     success: "bg-green-600 text-white hover:bg-green-700"
   };
 
+  const sizes = {
+    sm: "px-3 py-1.5 text-sm",
+    md: "px-4 py-2",
+    lg: "px-6 py-3 text-lg"
+  };
+
   return (
     <button
+      type={type}
       onClick={onClick}
       disabled={disabled || loading}
-      className={`${baseClasses} ${variants[variant]} ${className}`}
+      className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
     >
       {loading && <SimpleSpinner size={16} />}
       <span>{children}</span>
@@ -232,6 +262,7 @@ export function ProgressBar({
 // Export individual components
 export {
   SimpleSpinner as default,
+  LoadingSpinner,  // ← ADDED THIS EXPORT
   UploadProgress,
   ProcessingAnimation,
   QueryLoader,

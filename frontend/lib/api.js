@@ -1,6 +1,4 @@
-// lib/api.js
-// API functions to communicate with our FastAPI backend
-
+// lib/api.js - Enhanced with Multi-Document Features
 import axios from 'axios';
 
 // Base URL for your FastAPI backend
@@ -15,7 +13,9 @@ const api = axios.create({
   },
 });
 
-// API Functions
+// ============================================================================
+// EXISTING SINGLE-DOCUMENT API FUNCTIONS
+// ============================================================================
 
 /**
  * Health check - Test if backend is running
@@ -108,7 +108,7 @@ export const processPDF = async (fileId) => {
 };
 
 /**
- * Query the processed document
+ * Query a single document
  * @param {string} query - Question to ask about the document
  * @param {string} fileId - File ID of processed document
  * @param {number} k - Number of relevant chunks to return (default: 3)
@@ -205,6 +205,120 @@ export const deleteDocument = async (fileId) => {
   }
 };
 
+// ============================================================================
+// NEW MULTI-DOCUMENT API FUNCTIONS
+// ============================================================================
+
+/**
+ * Add a document to the multi-document collection
+ * @param {string} fileId - File ID of processed document
+ * @returns {Promise} Add to collection response
+ */
+export const addToCollection = async (fileId) => {
+  try {
+    const response = await api.post(`/add-to-collection/${fileId}`);
+    
+    return {
+      success: true,
+      data: response.data,
+      message: response.data.message,
+      collectionSize: response.data.collection_size,
+    };
+  } catch (error) {
+    console.error('Add to collection failed:', error);
+    return {
+      success: false,
+      error: error.response?.data?.detail || error.message,
+    };
+  }
+};
+
+/**
+ * Remove a document from the multi-document collection
+ * @param {string} fileId - File ID to remove
+ * @returns {Promise} Remove from collection response
+ */
+export const removeFromCollection = async (fileId) => {
+  try {
+    const response = await api.delete(`/collection/${fileId}`);
+    
+    return {
+      success: true,
+      data: response.data,
+      message: response.data.message,
+      collectionSize: response.data.collection_size,
+    };
+  } catch (error) {
+    console.error('Remove from collection failed:', error);
+    return {
+      success: false,
+      error: error.response?.data?.detail || error.message,
+    };
+  }
+};
+
+/**
+ * Get multi-document collection summary
+ * @returns {Promise} Collection summary with all documents
+ */
+export const getCollectionSummary = async () => {
+  try {
+    const response = await api.get('/collection-summary');
+    
+    return {
+      success: true,
+      data: response.data,
+      totalDocuments: response.data.total_documents,
+      totalChunks: response.data.total_chunks,
+      documents: response.data.documents,
+    };
+  } catch (error) {
+    console.error('Get collection summary failed:', error);
+    return {
+      success: false,
+      error: error.response?.data?.detail || error.message,
+    };
+  }
+};
+
+/**
+ * Query across multiple documents
+ * @param {string} query - Question to ask across documents
+ * @param {Array} fileIds - Optional array of specific file IDs to search (null = search all)
+ * @param {number} kTotal - Total number of chunks to retrieve across all documents
+ * @returns {Promise} Multi-document query response
+ */
+export const queryMultipleDocuments = async (query, fileIds = null, kTotal = 8) => {
+  try {
+    const response = await api.post('/query-multi', {
+      query: query,
+      file_ids: fileIds,
+      k_total: kTotal,
+    });
+    
+    return {
+      success: true,
+      data: response.data,
+      answer: response.data.answer,
+      sources: response.data.sources,
+      documentsSearched: response.data.documents_searched,
+      documentNames: response.data.document_names,
+      processingTime: response.data.processing_time,
+      llmUsed: response.data.llm_used,
+    };
+  } catch (error) {
+    console.error('Multi-document query failed:', error);
+    return {
+      success: false,
+      error: error.response?.data?.detail || error.message,
+    };
+  }
+};
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
 // Helper function to validate file before upload
 export const validatePDFFile = (file) => {
   const errors = [];
@@ -248,8 +362,33 @@ export const truncateText = (text, maxLength = 100) => {
   return text.slice(0, maxLength) + '...';
 };
 
+// Helper function to format processing time
+export const formatProcessingTime = (seconds) => {
+  if (seconds < 1) {
+    return `${Math.round(seconds * 1000)}ms`;
+  }
+  return `${seconds.toFixed(2)}s`;
+};
+
+// Helper function to get document status badge color
+export const getStatusBadgeColor = (status) => {
+  switch (status) {
+    case 'processed':
+      return 'bg-green-100 text-green-800 border-green-200';
+    case 'processing':
+      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+    case 'uploaded':
+      return 'bg-blue-100 text-blue-800 border-blue-200';
+    case 'error':
+      return 'bg-red-100 text-red-800 border-red-200';
+    default:
+      return 'bg-gray-100 text-gray-800 border-gray-200';
+  }
+};
+
 // Export default API object with all functions
 const apiService = {
+  // Single document functions
   healthCheck,
   uploadPDF,
   processPDF,
@@ -257,9 +396,19 @@ const apiService = {
   getDocumentInfo,
   listDocuments,
   deleteDocument,
+  
+  // Multi-document functions
+  addToCollection,
+  removeFromCollection,
+  getCollectionSummary,
+  queryMultipleDocuments,
+  
+  // Utility functions
   validatePDFFile,
   formatFileSize,
   truncateText,
+  formatProcessingTime,
+  getStatusBadgeColor,
 };
 
 export default apiService;

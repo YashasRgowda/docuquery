@@ -13,7 +13,7 @@ export default function ChatInterface({ documentData, onReset }) {
   const [isLoading, setIsLoading] = useState(false);
   const [documentInfo, setDocumentInfo] = useState(null);
   const [showDocInfo, setShowDocInfo] = useState(false);
-  
+
   // Refs
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -160,7 +160,7 @@ export default function ChatInterface({ documentData, onReset }) {
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setShowDocInfo(!showDocInfo)}
@@ -169,7 +169,7 @@ export default function ChatInterface({ documentData, onReset }) {
             >
               <Info className="w-5 h-5" />
             </button>
-            
+
             <button
               onClick={onReset}
               className="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition-colors"
@@ -177,7 +177,7 @@ export default function ChatInterface({ documentData, onReset }) {
             >
               <RotateCcw className="w-5 h-5" />
             </button>
-            
+
             <button
               onClick={handleDeleteDocument}
               className="text-white hover:bg-red-500 hover:bg-opacity-80 p-2 rounded-lg transition-colors"
@@ -229,15 +229,14 @@ export default function ChatInterface({ documentData, onReset }) {
             className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-3xl rounded-lg p-4 ${
-                message.type === 'user'
+              className={`max-w-3xl rounded-lg p-4 ${message.type === 'user'
                   ? 'bg-blue-600 text-white'
                   : message.isError
-                  ? 'bg-red-50 text-red-800 border border-red-200'
-                  : message.isWelcome
-                  ? 'bg-green-50 text-green-800 border border-green-200'
-                  : 'bg-white text-gray-800 border border-gray-200'
-              }`}
+                    ? 'bg-red-50 text-red-800 border border-red-200'
+                    : message.isWelcome
+                      ? 'bg-green-50 text-green-800 border border-green-200'
+                      : 'bg-white text-gray-800 border border-gray-200'
+                }`}
             >
               {/* Message Header */}
               <div className="flex items-center space-x-2 mb-2">
@@ -339,7 +338,7 @@ export default function ChatInterface({ documentData, onReset }) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask a question about your document..."
-            className="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-500 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors duration-200"
             disabled={isLoading}
           />
           <LoadingButton
@@ -351,7 +350,7 @@ export default function ChatInterface({ documentData, onReset }) {
             <Send className="w-5 h-5" />
           </LoadingButton>
         </form>
-        
+
         <div className="flex justify-between items-center mt-3 text-xs text-gray-500">
           <span>
             Press Enter to send • {messages.length} message{messages.length !== 1 ? 's' : ''}
@@ -370,11 +369,10 @@ function MessageBubble({ message, isUser }) {
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`max-w-3xl rounded-lg p-4 ${
-          isUser
+        className={`max-w-3xl rounded-lg p-4 ${isUser
             ? 'bg-blue-600 text-white'
             : 'bg-white text-gray-800 border border-gray-200'
-        }`}
+          }`}
       >
         <div className="flex items-center space-x-2 mb-2">
           {isUser ? (

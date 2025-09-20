@@ -78,10 +78,10 @@ class EmbeddingService:
             logger.error(f"Error creating embeddings: {str(e)}")
             raise Exception(f"Failed to create embeddings: {str(e)}")
     
-    def build_vector_index(self, chunks: List[str]) -> None:
+    def build_vector_index(self, chunks: List[str]) -> None:  
         """
         Build FAISS vector index from text chunks
-        
+        here we are building the search index basically a library for super fast search
         Args:
             chunks: List of text chunks to index
         """
